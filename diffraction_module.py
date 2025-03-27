@@ -110,7 +110,7 @@ def get_form_factor_array(crystal,diffraction_type):
     #get form factors depending on type of diffraction
     form_factors = []
     if diffraction_type == "xc":
-        with open("cromer_factors.csv", newline='') as f:
+        with open("params/cromer_factors.csv", newline='') as f:
             cromer_form_factors = {}
             lines = f.readlines()
             for i in range(0,len(lines),2):
@@ -119,7 +119,7 @@ def get_form_factor_array(crystal,diffraction_type):
                     cromer_form_factors[line]=lines[i+1][2:-1].split(" ")
             form_factors = cromer_form_factors
     elif diffraction_type == "n" or diffraction_type == "nm":
-        with open("neutron_diffraction_lengths.csv", 'r') as file:
+        with open("params/neutron_diffraction_lengths.csv", 'r') as file:
             neutron_form_factors = []
             csvreader = csv.reader(file)
             neutron_form_factors = next(csvreader)
@@ -132,7 +132,7 @@ def get_form_factor_array(crystal,diffraction_type):
 
 def get_j0_coeffs(crystal):
     j0 = {}
-    with open("j0.csv", newline='') as f:
+    with open("params/j0.csv", newline='') as f:
         lines = f.readlines()
         for i in range(0,len(lines)):
             line = lines[i]
@@ -142,7 +142,7 @@ def get_j0_coeffs(crystal):
 
 def get_j2_coeffs(crystal):
     j2 = {}
-    with open("j2.csv", newline='') as f:
+    with open("params/j2.csv", newline='') as f:
         lines = f.readlines()
         for i in range(0,len(lines)):
             line = lines[i]
