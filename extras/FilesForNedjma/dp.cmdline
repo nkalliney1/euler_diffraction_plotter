@@ -1,0 +1,3 @@
+dp -2tetacu -x FCC.xyz
+dp -2tetacu FCC.xyz
+dp -2tetacu FCC.xyz -hkl

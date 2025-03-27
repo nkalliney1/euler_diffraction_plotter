@@ -114,7 +114,7 @@ for h in range(lower,upper):
                     I_G_g.append(I * math.exp(-(mag_G-x[i])**2/(2*(sigma**2)))*LP*T) 
             
 #save to file
-with open(name+"_"+ diffraction_type +"_data.csv", "w") as f:
+with open("/crystal_data/" + name+"_"+ diffraction_type +"_data.csv", "w") as f:
     f.write(to_write)
 
 plt.plot(two_theta_g, I_G_g)
@@ -123,4 +123,3 @@ plt.ylim(0, None)
 plt.xlabel(r"2${\Theta}$ [deg]")
 plt.ylabel(r"Intensity")
 plt.show()
-
