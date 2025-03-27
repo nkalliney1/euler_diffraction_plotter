@@ -36,8 +36,17 @@ def get_magnetic_f(symbol, wavelength, theta_r, j0_coeffs, j2_coeffs):
     f = j0 + (2-1.91304276)*j2/2
     return f
 
-def get_magnetic_moment(symbol):
-    return np.array([1,0,0])
+def get_magnetic_moment(symbol, moments):
+    return moments[symbol]*np.array([1,0,0])
+
+def get_moments(name):
+    moments = {}
+    with open("crystals/" + name + "_moments.csv", newline='') as f:
+        lines = f.readlines()
+        for line in lines:
+            moments[line[0:2]] = float(line[3:])
+    return moments
+
 
 def get_reciprocal_vectors(crystal):
     reciprocal_vectors = []
@@ -75,7 +84,7 @@ def calculate_I_n(form_factors, crystal, v):
         SG += f*e
     return abs(SG)**2
 
-def calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeffs):
+def calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments):
     I = calculate_I_n(form_factors, crystal, v)
     
     F_m = np.array([0,0,0])
@@ -83,13 +92,13 @@ def calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeff
     for i in range(len(positions)):
         e = cmath.exp(complex(0,-2*math.pi*np.dot(v, positions[i])))
         f = float(get_magnetic_f(crystal.symbols[i],wavelength,OH, j0_coeffs, j2_coeffs))
-        F_m = np.add(F_m, f*e*get_magnetic_moment(crystal.symbols[i]))
+        F_m = np.add(F_m, f*e*get_magnetic_moment(crystal.symbols[i], moments))
     k_hat = v / math.sqrt(np.dot(v, v))
     I += np.linalg.norm(np.cross(k_hat, np.cross(F_m, k_hat)))**2
 
     return I
 
-def calculate_I(type, form_factors,crystal, v, wavelength, OH, j0_coeffs, j2_coeffs):
+def calculate_I(type, form_factors,crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments):
     if type == "xz":
         return calculate_I_xz(crystal, v)
     elif type == "xc":
@@ -97,7 +106,7 @@ def calculate_I(type, form_factors,crystal, v, wavelength, OH, j0_coeffs, j2_coe
     elif type == "n":
         return calculate_I_n(form_factors, crystal, v)
     elif type == "nm":
-        return calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeffs)
+        return calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments)
 
 def get_crystal(name, file_type):
     if file_type == "v":

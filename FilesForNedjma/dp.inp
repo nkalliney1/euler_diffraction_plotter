@@ -1,7 +1,0 @@
-0 7  # qrange
-0 # no qlist
-0 # no 2D image
-1  # scattering : 1 for Xray, 2 for neutron 
-1 13  # elements
-0  # dw coefficients
- 6.4202 3.0387 1.9002 .7426 1.5936 31.5472 1.9646 85.0886 1.1151  # xray cromer table for Z=13

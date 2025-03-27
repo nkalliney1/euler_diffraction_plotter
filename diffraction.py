@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 from diffraction_module import get_reciprocal_vectors, calculate_I, get_crystal, get_form_factor_array, get_j0_coeffs, get_j2_coeffs
+from diffraction_module import get_moments
 
 name = sys.argv[1]
 wavelength = float(sys.argv[2])
@@ -37,9 +38,11 @@ form_factor_array = get_form_factor_array(crystal, diffraction_type)
 rvectors = get_reciprocal_vectors(crystal)
 j0_coeffs = 0
 j2_coeffs = 0
+moments = 0
 if diffraction_type == "nm":
     j0_coeffs = get_j0_coeffs(crystal)
     j2_coeffs = get_j2_coeffs(crystal)
+    moments = get_moments(name)
 
 to_write = "h,k,l,mag(G),S,I,d,2theta\n"
 two_theta = []
@@ -80,7 +83,7 @@ for h in range(lower,upper):
                 T = math.exp(-B*(math.sin(theta_r)/wavelength)**2)
             
 
-            I = calculate_I(diffraction_type, form_factor_array, crystal, hkl, wavelength, theta_r, j0_coeffs, j2_coeffs)
+            I = calculate_I(diffraction_type, form_factor_array, crystal, hkl, wavelength, theta_r, j0_coeffs, j2_coeffs, moments)
             #hkl
             to_write+=str(h) + "," + str(k) + "," + str(l) + ","
             #|G|
@@ -104,7 +107,7 @@ for h in range(lower,upper):
             sigma = 0.01
             x = np.linspace(mu - 5*sigma, mu + 5*sigma, 101)
             for i in range(len(x)):
-                if (0.5*x[i]/mag_k> 1 or 0.5*x[i]/mag_k<-1):
+                if (0.5*x[i]/mag_k > 1 or 0.5*x[i]/mag_k<-1):
                     continue
                 theta_2 = math.degrees(math.asin(0.5*x[i]/mag_k))
                 if 2*theta_2 in two_theta_g:
@@ -114,7 +117,7 @@ for h in range(lower,upper):
                     I_G_g.append(I * math.exp(-(mag_G-x[i])**2/(2*(sigma**2)))*LP*T) 
             
 #save to file
-with open("/crystal_data/" + name+"_"+ diffraction_type +"_data.csv", "w") as f:
+with open("crystal_data/" + name+"_"+ diffraction_type +"_data.csv", "w") as f:
     f.write(to_write)
 
 plt.plot(two_theta_g, I_G_g)
