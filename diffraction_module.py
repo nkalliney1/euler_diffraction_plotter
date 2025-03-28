@@ -6,6 +6,7 @@ import ase.io.cif
 import csv
 
 def get_cromer_f(form_factors, number, symbol, wavelength, theta_r):
+    #get cromer form factors as a function of sine(theta)/wavelength
     nums = form_factors[symbol]
     form_factor = 0
     s = math.sin(theta_r)/wavelength
@@ -17,6 +18,7 @@ def get_cromer_f(form_factors, number, symbol, wavelength, theta_r):
     return form_factor
 
 def get_magnetic_f(symbol, wavelength, theta_r, j0_coeffs, j2_coeffs):
+    #get magnetic form factors as a function of sine(theta)/wavelength
     s = math.sin(theta_r)/wavelength
     j0 = 0
     j2 = 0
@@ -40,6 +42,7 @@ def get_magnetic_moment(symbol, moments):
     return moments[symbol]*np.array([1,0,0])
 
 def get_moments(name):
+    #get all magnetic moments
     moments = {}
     with open("crystals/" + name + "_moments.csv", newline='') as f:
         lines = f.readlines()
@@ -47,8 +50,8 @@ def get_moments(name):
             moments[line[0:2]] = float(line[3:])
     return moments
 
-
 def get_reciprocal_vectors(crystal):
+    #reciprocal lattice vectors
     reciprocal_vectors = []
     cell = crystal.cell
     volume = np.dot(cell[0], np.cross(cell[1], cell[2]))
@@ -58,6 +61,7 @@ def get_reciprocal_vectors(crystal):
     return reciprocal_vectors
 
 def calculate_I_xz(crystal, v):
+    #calculate intensity for scattering w/o angular dependence
     SG = 0
     positions = crystal.get_scaled_positions()
     for i in range(len(positions)):
@@ -67,6 +71,7 @@ def calculate_I_xz(crystal, v):
     return abs(SG)**2
 
 def calculate_I_xc(form_factors, crystal, v, wavelength, OH):
+    #calculate intensity for scatting w cromer form factors
     SG = 0
     positions = crystal.get_scaled_positions()
     for i in range(len(positions)):
@@ -76,6 +81,7 @@ def calculate_I_xc(form_factors, crystal, v, wavelength, OH):
     return abs(SG)**2
 
 def calculate_I_n(form_factors, crystal, v):
+    #nuclear neutron scattering
     SG = 0
     positions = crystal.get_scaled_positions()
     for i in range(len(positions)):
@@ -85,6 +91,8 @@ def calculate_I_n(form_factors, crystal, v):
     return abs(SG)**2
 
 def calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments):
+    #nuclear and magnetic neutron scattering
+
     I = calculate_I_n(form_factors, crystal, v)
     
     F_m = np.array([0,0,0])
@@ -117,6 +125,8 @@ def get_crystal(name, file_type):
 
 def get_form_factor_array(crystal,diffraction_type):
     #get form factors depending on type of diffraction
+    #only for nuclear neutron or cromer form factors
+
     form_factors = []
     if diffraction_type == "xc":
         with open("params/cromer_factors.csv", newline='') as f:
@@ -133,13 +143,13 @@ def get_form_factor_array(crystal,diffraction_type):
             csvreader = csv.reader(file)
             neutron_form_factors = next(csvreader)
             form_factors = neutron_form_factors
-    elif diffraction_type == "xz":
-        form_factors.append("easter egg!")
+
     else:
         raise ValueError('Not a valid type of diffraction for this code')
     return form_factors
 
 def get_j0_coeffs(crystal):
+    #used to calculate nuclear scattering form factor
     j0 = {}
     with open("params/j0.csv", newline='') as f:
         lines = f.readlines()
@@ -150,6 +160,7 @@ def get_j0_coeffs(crystal):
     return j0
 
 def get_j2_coeffs(crystal):
+    #used to calculate nuclear scattering form factor
     j2 = {}
     with open("params/j2.csv", newline='') as f:
         lines = f.readlines()
