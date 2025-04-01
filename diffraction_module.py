@@ -35,7 +35,7 @@ def get_magnetic_f(symbol, wavelength, theta_r, j0_coeffs, j2_coeffs):
         j2 += float(j2_atom[6])
         j2 = j2*s*s
 
-    f = j0 + (2-1.91304276)*j2/2
+    f = j0 + (-2-3.82608552)*j2/2
     return f
 
 def get_magnetic_moment(symbol, moments):
