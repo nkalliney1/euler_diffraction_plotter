@@ -87,18 +87,38 @@ Fe 2
 ```
 
 ## Theoretical backing
-The Bragg condition requires that 
-$$\Delta k = \textbf{G} = hb_1 + kb_2+ lb_3}$$ where $$b_i$$ are the recriprocal lattice vectors.
 
-The intensity of diffraction then is proportional to the squared magnitude of the structure factor.
+### X-ray and nuclear neutron diffraction
+The Bragg condition requires that $$k = \textbf{G} = h\mathbf{b_1} + k\mathbf{b_2} + l\mathbf{b_3}$$, where $$\mathbf{b_i}$$ are the recriprocal lattice vectors.
+
+The intensity of diffraction then is proportional to the squared magnitude of the structure factor. 
 $$I \propto |S_G(h, k, l)|^2$$
 
 The structure factor is given by summing over the atoms in the unit cell.
-$$S_G = \sum_{j} f_j exp(-2\pi i (hx_j + ky_j + lz_j))$$
 
-### X-ray diffraction
+$$S_G = \sum_{j} f_j exp(-2\pi i (hx_j + ky_j + lz_j))$$.
+
+For nuclear neutron scattering, $$f_j$$ does not have an angular dependence, and is simply the atomic neutron scattering length.
+
+For x-ray diffraction, the form factor is given by $$f_j(s) = \sum_{i=1}^{4}[a_ie^{-b_i s^2}] + c$$.
+
+$$s = sin(\theta)/\lambda$$ where $$\theta$$ is the incident angle of the beam and $$\lambda$$ is its wavelength. The $$a_i$$ and $$b_i$$ are the Cromer factors and are element-specific.
+
+### Elastic magnetic neutron scattering
+Intensity of magnetic neutron scatting is given by $$I = I_n + I_m$$, where $$I_n$$ is nuclear neutron scattering (see above) and $$I_m$$ is magnetic neutron scattering.
+
+The structure factor for magnetic neutron scattering is a vector because the relative orientation of the neutron and atom's magnetic moments affects the scattering. It is given by $$\vec{F_m}(\vec{k})= \sum_{j} \vec{\mu_j} f_j(s) exp(-2\pi i (hx_j + ky_j + lz_j)) $$.
+
+The $$f_j(s)$$ are given by $$f_j(s) = <j_0> + \frac{g-2}{2}<j_2>$$ where $$g$$ is the neutron's g-factor and $$s$$ is defined as above.
+
+$$<j_0>= Ae^{-as^2} + Be^{-bs^2} + Ce^{-cs^2} + D$$ where $$A,a,B,b,C,c,D$$ are element specific factors.
 
 
+$$<j_2>= [Ae^{-as^2} + Be^{-bs^2} + Ce^{-cs^2} + D]s^2$$ where $$A,a,B,b,C,c,D$$ are element specific factors that are different from those for $$<j_0>$$.
+
+$$\vec{\mu_j}$$ is the atom's magnetic moment in terms of the Bohr magneton.
+
+The intensity is given by $$I_m(\vec{k}) = |\hat{k} \times \vec{F_m}(\vec{k}) \times \hat{k} |^2$$
 ## Sources for coefficients
 ### Cromer factors
 [Database](https://sources.debian.org/src/libxray-scattering-perl/3.0.1-2/data/cromann.dat/)
