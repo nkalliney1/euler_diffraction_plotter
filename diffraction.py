@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 from diffraction_module import get_reciprocal_vectors, calculate_I, get_crystal, get_form_factor_array, get_j0_coeffs, get_j2_coeffs
-from diffraction_module import get_moments
+from diffraction_module import get_moments, get_occupancies
 
 name = sys.argv[1]
 wavelength = float(sys.argv[2])
@@ -28,20 +28,25 @@ else:
 
 lp_on = True
 t_on = True
+partial_occupancy = False
+occupancies = {}
 if "-nlp" in sys.argv:
     lp_on = False
 if "-nt" in sys.argv:
     t_on = False
+if "-po" in sys.argv:
+    partial_occupancy = True
+    occupancies = get_occupancies(name)
 
 crystal = get_crystal(name, file_type)
-form_factor_array = get_form_factor_array(crystal, diffraction_type)
+form_factor_array = get_form_factor_array(crystal, diffraction_type, partial_occupancy, occupancies)
 rvectors = get_reciprocal_vectors(crystal)
 j0_coeffs = 0
 j2_coeffs = 0
 moments = 0
 if diffraction_type == "nm":
-    j0_coeffs = get_j0_coeffs(crystal)
-    j2_coeffs = get_j2_coeffs(crystal)
+    j0_coeffs = get_j0_coeffs(crystal, partial_occupancy, occupancies)
+    j2_coeffs = get_j2_coeffs(crystal, partial_occupancy, occupancies)
     moments = get_moments(name)
 
 to_write = "h,k,l,mag(G),S,I,d,2theta\n"
@@ -83,7 +88,7 @@ for h in range(lower,upper):
                 T = math.exp(-B*(math.sin(theta_r)/wavelength)**2)
             
 
-            I = calculate_I(diffraction_type, form_factor_array, crystal, hkl, wavelength, theta_r, j0_coeffs, j2_coeffs, moments)
+            I = calculate_I(diffraction_type, form_factor_array, crystal, hkl, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
             #hkl
             to_write+=str(h) + "," + str(k) + "," + str(l) + ","
             #|G|

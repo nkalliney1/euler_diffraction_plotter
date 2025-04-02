@@ -4,6 +4,8 @@
 #ssh nkalline@euler.phys.cmu.edu
 
 import ase.io.cif
+from openeye import oechem
 
-crystal = ase.io.cif.read_cif("crystals/B2-I.cif")
+crystal = ase.io.cif.read_cif("crystals/B2-I-po.cif")
 print(crystal.symbols)
+print(crystal.get_tags())

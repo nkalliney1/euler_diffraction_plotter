@@ -4,8 +4,9 @@ import numpy as np
 import ase.io.vasp
 import ase.io.cif
 import csv
+from openeye import oechem
 
-def get_cromer_f(form_factors, number, symbol, wavelength, theta_r):
+def get_cromer_f(form_factors, symbol, wavelength, theta_r):
     #get cromer form factors as a function of sine(theta)/wavelength
     nums = form_factors[symbol]
     form_factor = 0
@@ -44,7 +45,7 @@ def get_magnetic_moment(symbol, moments):
 def get_moments(name):
     #get all magnetic moments
     moments = {}
-    with open("crystals/" + name + "_moments.csv", newline='') as f:
+    with open("crystals/" + name + "-moments.csv", newline='') as f:
         lines = f.readlines()
         for line in lines:
             moments[line[0:2]] = float(line[3:])
@@ -60,61 +61,90 @@ def get_reciprocal_vectors(crystal):
     reciprocal_vectors.append(2*math.pi*np.cross(cell[0],cell[1])/volume)
     return reciprocal_vectors
 
-def calculate_I_xz(crystal, v):
+def calculate_I_xz(crystal, v, partial_occupancy, occupancies):
     #calculate intensity for scattering w/o angular dependence
+
     SG = 0
     positions = crystal.get_scaled_positions()
     for i in range(len(positions)):
         e = cmath.exp(complex(0,-2*math.pi*np.dot(v, positions[i])))
-        f = crystal.numbers[i]
+        if partial_occupancy:
+            f = 0
+            for atom in occupancies[crystal.symbols[i]]:
+                f += atom[1]*oechem.OEGetAtomicNum(atom[0])
+        else:
+            f = crystal.numbers[i]
         SG += f*e
     return abs(SG)**2
 
-def calculate_I_xc(form_factors, crystal, v, wavelength, OH):
+def calculate_I_xc(form_factors, crystal, v, wavelength, OH, partial_occupancy, occupancies):
     #calculate intensity for scatting w cromer form factors
     SG = 0
     positions = crystal.get_scaled_positions()
     for i in range(len(positions)):
         e = cmath.exp(complex(0,-2*math.pi*np.dot(v, positions[i])))
-        f = float(get_cromer_f(form_factors,crystal.numbers[i],crystal.symbols[i],wavelength,OH))
+
+        if partial_occupancy:
+            f = 0
+            for atom in occupancies[crystal.symbols[i]]:
+                f += atom[1]*float(get_cromer_f(form_factors,atom[0],wavelength,OH))
+        else:
+            f = float(get_cromer_f(form_factors,crystal.symbols[i],wavelength,OH))
+
         SG += f*e
     return abs(SG)**2
 
-def calculate_I_n(form_factors, crystal, v):
+def calculate_I_n(form_factors, crystal, v, partial_occupancy, occupancies):
     #nuclear neutron scattering
     SG = 0
     positions = crystal.get_scaled_positions()
     for i in range(len(positions)):
         e = cmath.exp(complex(0,-2*math.pi*np.dot(v, positions[i])))
-        f = float(form_factors[crystal.numbers[i]-1])
+
+        if partial_occupancy:
+            f = 0
+            for atom in occupancies[crystal.symbols[i]]:
+                f += atom[1]*float(form_factors[atom[0]])
+        else:
+            f = float(form_factors[crystal.symbols[i]])
+
         SG += f*e
     return abs(SG)**2
 
-def calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments):
+def calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies):
     #nuclear and magnetic neutron scattering
 
-    I = calculate_I_n(form_factors, crystal, v)
+    I = calculate_I_n(form_factors, crystal, v, partial_occupancy, occupancies)
     
     F_m = np.array([0,0,0])
     positions = crystal.get_scaled_positions()
     for i in range(len(positions)):
+        if partial_occupancy:
+            f = 0
+            m = 0
+            for atom in occupancies[crystal.symbols[i]]:
+                f = atom[1]*float(get_magnetic_f(atom[0],wavelength,OH, j0_coeffs, j2_coeffs))
+                m = atom[1]*get_magnetic_moment(atom[0], moments)
+        else:
+            f = float(get_magnetic_f(crystal.symbols[i],wavelength,OH, j0_coeffs, j2_coeffs))
+            m = get_magnetic_moment(crystal.symbols[i], moments)
+
         e = cmath.exp(complex(0,-2*math.pi*np.dot(v, positions[i])))
-        f = float(get_magnetic_f(crystal.symbols[i],wavelength,OH, j0_coeffs, j2_coeffs))
-        F_m = np.add(F_m, f*e*get_magnetic_moment(crystal.symbols[i], moments))
+        F_m = np.add(F_m, f*e*m)
     k_hat = v / math.sqrt(np.dot(v, v))
     I += np.linalg.norm(np.cross(k_hat, np.cross(F_m, k_hat)))**2
 
     return I
 
-def calculate_I(type, form_factors,crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments):
+def calculate_I(type, form_factors,crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies):
     if type == "xz":
-        return calculate_I_xz(crystal, v)
+        return calculate_I_xz(crystal, v, partial_occupancy, occupancies)
     elif type == "xc":
-        return calculate_I_xc(form_factors, crystal, v, wavelength, OH)
+        return calculate_I_xc(form_factors, crystal, v, wavelength, OH, partial_occupancy, occupancies)
     elif type == "n":
-        return calculate_I_n(form_factors, crystal, v)
+        return calculate_I_n(form_factors, crystal, v, partial_occupancy, occupancies)
     elif type == "nm":
-        return calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments)
+        return calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
 
 def get_crystal(name, file_type):
     if file_type == "v":
@@ -123,9 +153,17 @@ def get_crystal(name, file_type):
         crystal = ase.io.cif.read_cif("crystals/"+name+".cif")
     return crystal
 
-def get_form_factor_array(crystal,diffraction_type):
+def get_form_factor_array(crystal, diffraction_type, partial_occupancy, occupancies):
     #get form factors depending on type of diffraction
     #only for nuclear neutron or cromer form factors
+    
+    symbols = []
+    if partial_occupancy:
+        for location in occupancies:
+            for atom in occupancies[location]:
+                symbols.append(atom[0])
+    else:
+        symbols = crystal.symbols
 
     form_factors = []
     if diffraction_type == "xc":
@@ -134,38 +172,78 @@ def get_form_factor_array(crystal,diffraction_type):
             lines = f.readlines()
             for i in range(0,len(lines),2):
                 line = lines[i][:-1]
-                if line in crystal.symbols and line not in cromer_form_factors:
-                    cromer_form_factors[line]=lines[i+1][2:-1].split(" ")
+                if line in symbols and line not in cromer_form_factors:
+                    nums = lines[i+1][2:-1].split(" ")
+                    cromer_form_factors[line]=[float(x) for x in nums]
             form_factors = cromer_form_factors
+
     elif diffraction_type == "n" or diffraction_type == "nm":
         with open("params/neutron_diffraction_lengths.csv", 'r') as file:
-            neutron_form_factors = []
+            all_neutron_form_factors = []
             csvreader = csv.reader(file)
-            neutron_form_factors = next(csvreader)
-            form_factors = neutron_form_factors
+            all_neutron_form_factors = next(csvreader)
+            neutron_form_factors = {}
 
+            for i in range(len(all_neutron_form_factors)):
+                if (oechem.OEGetAtomicSymbol((i)) in symbols):
+                    neutron_form_factors[oechem.OEGetAtomicSymbol((i))] = float(all_neutron_form_factors[i])
+            form_factors = neutron_form_factors
+    elif diffraction_type == "xz":
+        return
     else:
         raise ValueError('Not a valid type of diffraction for this code')
+    
     return form_factors
 
-def get_j0_coeffs(crystal):
+def get_j0_coeffs(crystal, partial_occupancy, occupancies):
     #used to calculate nuclear scattering form factor
+    symbols = []
+    if partial_occupancy:
+        for location in occupancies:
+            for atom in occupancies[location]:
+                symbols.append(atom[0])
+    else:
+        symbols = crystal.symbols
+
     j0 = {}
     with open("params/j0.csv", newline='') as f:
         lines = f.readlines()
         for i in range(0,len(lines)):
             line = lines[i]
-            if line[0:2] in crystal.symbols and line[0:2] not in j0:
-                j0[line[0:2]]=lines[i][4:-1].split("\t")
+            if line[0:2] in symbols and line[0:2] not in j0:
+                nums = lines[i][4:-1].split("\t")
+                j0[line[0:2]]=[float(x) for x in nums]
     return j0
 
-def get_j2_coeffs(crystal):
+def get_j2_coeffs(crystal, partial_occupancy, occupancies):
     #used to calculate nuclear scattering form factor
+    symbols = []
+    if partial_occupancy:
+        for location in occupancies:
+            for atom in occupancies[location]:
+                symbols.append(atom[0])
+    else:
+        symbols = crystal.symbols
+
     j2 = {}
     with open("params/j2.csv", newline='') as f:
         lines = f.readlines()
         for i in range(0,len(lines)):
             line = lines[i]
-            if line[0:2] in crystal.symbols and line[0:2] not in j2:
-                j2[line[0:2]]=lines[i][4:-1].split("\t")
+            if line[0:2] in symbols and line[0:2] not in j2:
+                nums = lines[i][4:-1].split("\t")
+                j2[line[0:2]]=[float(x) for x in nums]
     return j2
+
+def get_occupancies(name):
+    occupancies = {}
+
+    with open("crystals/"+name+"-header.csv", newline='') as f:
+        lines = f.readlines()
+        for i in range(0,len(lines)):
+            line = lines[i]
+            nums = lines[i][3:-1].split(" ")
+            occupancies[line[0:2]] = []
+            for j in range(0,len(nums),2):
+                occupancies[line[0:2]].append([nums[j], float(nums[j+1])])
+    return occupancies
