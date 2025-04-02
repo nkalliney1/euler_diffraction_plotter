@@ -45,16 +45,17 @@ python3 diffraction.py BCC 1.54 -nm -po
 ## Files required
 All crystals must be described using a `.cif` or `.vasp` file.
 
-## Partial occupancy
+### Partial occupancy
 Crystals that are described with partial occupancy should be structured like so:
 In the `.cif` file, each location should be filled with a placeholder element, which does not necessarily have to be one of the elements in the crystal, but must be unique.
 The user should create a second file, titled `crystalname-header.csv` that should be structured like so:
 ```
-placeholder_element_name element_1 occupancy_fraction_1 element_2 occupancy_fraction_2 [etc]
+placeholder element_1 occupancy_frac1 element_2 occupancy_frac2 [etc]
 ```
 for as many lines as necessary. Lines can be in any order.
 
 For example, to describe AlCrVTi as a BCC lattice where the center position is occupied by V and Ti at equal fractions, and the vertex occupied by Al and Cr at equal fractions, and using Al as the placeholder for the vertices and Ti as the placeholder for the center:
+
 End of `.cif` file:
 ```
 loop_
@@ -77,9 +78,37 @@ Al Al 0.5 Cr 0.5
 Ti Ti 0.5 V 0.5
 ```
 
-## Magnetic neutron diffraction
+### Magnetic neutron diffraction
 For magnetic neutron diffraction, all atoms with magnetic moments should have their moments specified in any order n a file named `crystalname-moments.csv`. Moments should be in terms of the Bohr magneton. 
+
 For example, for a crystal where Fe is the only atom with a magnetic moment, `Fe-moments.csv` is simply:
 ```
 Fe 2
 ```
+
+## Theoretical backing
+The Bragg condition requires that  
+$$
+\delta k = \textbf[G] = h
+$$
+
+The intensity of diffraction is proportional to the squared magnitude of the structure factor.
+$$
+I \propto |S_G(h, k, l)|^2
+$$
+
+
+### X-ray diffraction
+
+
+## Sources for coefficients
+### Cromer factors
+[Database](https://sources.debian.org/src/libxray-scattering-perl/3.0.1-2/data/cromann.dat/)
+
+## Magnetic neutron scattering factors
+[Database](https://www.ill.eu/sites/ccsl/ffacts/ffachtml.html)
+
+## Neutron scattering lengths
+Used bound coherent scattering length.
+
+[Database](https://www.ncnr.nist.gov/resources/n-lengths/list.html)

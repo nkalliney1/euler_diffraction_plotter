@@ -26,14 +26,14 @@ elif "-nm" in sys.argv:
 else:
     raise ValueError("Need valid diffraction type")
 
-lp_on = True
-t_on = True
+lp_on = False
+t_on = False
 partial_occupancy = False
 occupancies = {}
-if "-nlp" in sys.argv:
-    lp_on = False
-if "-nt" in sys.argv:
-    t_on = False
+if "-lp" in sys.argv:
+    lp_on = True
+if "-t" in sys.argv:
+    t_on = True
 if "-po" in sys.argv:
     partial_occupancy = True
     occupancies = get_occupancies(name)
