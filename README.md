@@ -87,16 +87,14 @@ Fe 2
 ```
 
 ## Theoretical backing
-The Bragg condition requires that  
-$$
-\delta k = \textbf[G] = h
-$$
+The Bragg condition requires that 
+$$\Delta k = \textbf{G} = hb_1 + kb_2+ lb_3}$$ where $$b_i$$ are the recriprocal lattice vectors.
 
-The intensity of diffraction is proportional to the squared magnitude of the structure factor.
-$$
-I \propto |S_G(h, k, l)|^2
-$$
+The intensity of diffraction then is proportional to the squared magnitude of the structure factor.
+$$I \propto |S_G(h, k, l)|^2$$
 
+The structure factor is given by summing over the atoms in the unit cell.
+$$S_G = \sum_{j} f_j exp(-2\pi i (hx_j + ky_j + lz_j))$$
 
 ### X-ray diffraction
 
