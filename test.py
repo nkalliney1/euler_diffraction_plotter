@@ -2,6 +2,7 @@
 #conda activate venv
 #conda deactivate
 #ssh nkalline@euler.phys.cmu.edu
+#/B2-I-AlCr-TiV
 
 import ase.io.cif
 from openeye import oechem

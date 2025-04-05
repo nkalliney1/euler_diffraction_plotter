@@ -40,8 +40,11 @@ def get_magnetic_f(symbol, wavelength, theta_r, j0_coeffs, j2_coeffs):
     return f
 
 def get_magnetic_moment(symbol, moments):
-    return moments[symbol]*np.array([1,0,0])
-
+    if symbol in moments:
+        return moments[symbol]*np.array([1,0,0])
+    else:
+        return 0
+    
 def get_moments(name):
     #get all magnetic moments
     moments = {}
