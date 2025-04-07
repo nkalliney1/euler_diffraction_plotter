@@ -89,7 +89,7 @@ Fe 2
 ## Theoretical backing
 
 ### X-ray and nuclear neutron diffraction
-The Bragg condition requires that $$\Delta\vec{k} = \textbf{G} = h\mathbf{b_1} + k\mathbf{b_2} + l\mathbf{b_3}$$, where $$\mathbf{b_i}$$ are the recriprocal lattice vectors.
+The Bragg condition requires that $$\vec{\Delta k} = \textbf{G} = h\mathbf{b_1} + k\mathbf{b_2} + l\mathbf{b_3}$$, where $$\mathbf{b_i}$$ are the recriprocal lattice vectors.
 
 The intensity of diffraction then is proportional to the squared magnitude of the structure factor. 
 $$I \propto |S_G(h, k, l)|^2$$
@@ -108,9 +108,9 @@ $$s = sin(\theta)/\lambda$$ where $$\theta$$ is the incident angle of the beam a
 Intensity of magnetic neutron scatting is given by $$I = I_n + I_m$$, where $$I_n$$ is nuclear neutron scattering (see above) and $$I_m$$ is magnetic neutron scattering.
 
 The structure factor for magnetic neutron scattering is a vector because the relative orientation of the neutron and atom's magnetic moments affects the scattering. 
-Recall that $$\Delta\vec{k} = h\mathbf{b_1} + k\mathbf{b_2} + l\mathbf{b_3}$$
+Recall that $$\vec{\Delta k} = h\mathbf{b_1} + k\mathbf{b_2} + l\mathbf{b_3}$$
 
-The structure factor is given by is given by $$\vec{F_m}(\vec{k})= \sum_{j} \vec{\mu_j} f_j(s) exp(-2\pi i (hx_j + ky_j + lz_j)) $$.
+The structure factor is given by is given by $$\vec{F_m}(\vec{\Delta k})= \sum_{j} \vec{\mu_j} f_j(s) exp(-2\pi i (hx_j + ky_j + lz_j)) $$.
 
 The $$f_j(s)$$ are given by $$f_j(s) = <j_0> + \frac{g-2}{2}<j_2>$$ where $$g$$ is the neutron's g-factor and $$s$$ is defined as above.
 
