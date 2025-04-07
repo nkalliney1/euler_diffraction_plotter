@@ -89,7 +89,7 @@ Fe 2
 ## Theoretical backing
 
 ### X-ray and nuclear neutron diffraction
-The Bragg condition requires that $$k = \textbf{G} = h\mathbf{b_1} + k\mathbf{b_2} + l\mathbf{b_3}$$, where $$\mathbf{b_i}$$ are the recriprocal lattice vectors.
+The Bragg condition requires that $$\vec{k} = \textbf{G} = h\mathbf{b_1} + k\mathbf{b_2} + l\mathbf{b_3}$$, where $$\mathbf{b_i}$$ are the recriprocal lattice vectors.
 
 The intensity of diffraction then is proportional to the squared magnitude of the structure factor. 
 $$I \propto |S_G(h, k, l)|^2$$
