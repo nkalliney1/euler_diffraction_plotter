@@ -114,10 +114,10 @@ The structure factor is given by is given by $$\vec{F_m}(\vec{\Delta k})= \sum_{
 
 The $$f_j(s)$$ are given by $$f_j(s) = <j_0> + \frac{g-2}{2}<j_2>$$ where $$g$$ is the neutron's g-factor and $$s$$ is defined as above.
 
-$$<j_0>= Ae^{-as^2} + Be^{-bs^2} + Ce^{-cs^2} + D$$ where $$A,a,B,b,C,c,D$$ are element specific factors.
+$$<j_0>= A_1e^{-a_1s^2} + B_1e^{-b_1s^2} + C_1e^{-c_1s^2} + D_1$$ where $$A_1,a_1,B_1,b_1,C_1,c_1,D_1$$ are element specific factors.
 
 
-$$<j_2>= [Ae^{-as^2} + Be^{-bs^2} + Ce^{-cs^2} + D]s^2$$ where $$A,a,B,b,C,c,D$$ are element specific factors that are different from those for $$<j_0>$$.
+$$<j_2>= [A_2e^{-a_2s^2} + B_2e^{-b_2s^2} + C_2e^{-c_2s^2} + D_2]s^2$$ where $$A_2,a_2,B_2,b_2,C_2,c_2,D_2$$ are element specific factors.
 
 $$\vec{\mu_j}$$ is the atom's magnetic moment in terms of the Bohr magneton.
 
