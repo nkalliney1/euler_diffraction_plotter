@@ -121,7 +121,7 @@ $$<j_2>= [Ae^{-as^2} + Be^{-bs^2} + Ce^{-cs^2} + D]s^2$$ where $$A,a,B,b,C,c,D$$
 
 $$\vec{\mu_j}$$ is the atom's magnetic moment in terms of the Bohr magneton.
 
-The intensity is given by $$I_m(\vec{k}) = |\hat{k} \times \vec{F_m}(\vec{k}) \times \hat{k}|^2$$
+The intensity is given by $$I_m(\Delta\vec{k}) = |\hat{\Delta k} \times \vec{F_m}(\vec{\Delta k}) \times \hat{\Delta k}|^2$$
 ## Sources for coefficients
 ### Cromer factors
 [Database](https://sources.debian.org/src/libxray-scattering-perl/3.0.1-2/data/cromann.dat/)
