@@ -96,7 +96,7 @@ $$I \propto |S_G(h, k, l)|^2$$
 
 The structure factor is given by summing over the atoms in the unit cell.
 
-$$S_G(h, k, l) = \sum_{j} f_j exp(-2\pi i (hx_j + ky_j + lz_j))$$.
+$$S_G(\vec{\Delta k}) = \sum_{j} f_j exp(-2\pi i (hx_j + ky_j + lz_j))$$.
 
 For nuclear neutron scattering, $$f_j$$ does not have an angular dependence, and is simply the atomic neutron scattering length.
 
