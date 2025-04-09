@@ -23,20 +23,29 @@ elif "-n" in sys.argv:
     diffraction_type = "n"
 elif "-nm" in sys.argv:
     diffraction_type = "nm"
+elif "-m" in sys.argv:
+    diffraction_type = "m"
 else:
     raise ValueError("Need valid diffraction type")
 
-lp_on = False
+p_on = False
 t_on = False
+l_on = False
 partial_occupancy = False
 occupancies = {}
-if "-lp" in sys.argv:
+if "-p" in sys.argv:
     lp_on = True
+if "-l" in sys.argv:
+    l_on = True
+if "-lp" in sys.argv:
+    l_on = True
+    p_on = True
 if "-t" in sys.argv:
     t_on = True
 if "-po" in sys.argv:
     partial_occupancy = True
     occupancies = get_occupancies(name)
+
 
 crystal = get_crystal(name, file_type)
 form_factor_array = get_form_factor_array(crystal, diffraction_type, partial_occupancy, occupancies)
@@ -44,7 +53,7 @@ rvectors = get_reciprocal_vectors(crystal)
 j0_coeffs = 0
 j2_coeffs = 0
 moments = 0
-if diffraction_type == "nm":
+if diffraction_type == "nm" or diffraction_type == "m":
     j0_coeffs = get_j0_coeffs(crystal, partial_occupancy, occupancies)
     j2_coeffs = get_j2_coeffs(crystal, partial_occupancy, occupancies)
     moments = get_moments(name)
@@ -79,16 +88,19 @@ for h in range(lower,upper):
                 theta = math.degrees(math.asin(OH))
 
             theta_r = math.radians(theta)
-            LP = 1
+            L = 1
             T = 1
-            if lp_on:
-                LP = (1 + (math.cos(2*theta_r)**2))/(8*(math.sin(theta_r)**2)*math.cos(theta_r))
+            P = 1
+            if l_on:
+                L = 1/((math.sin(theta_r)**2)*4*math.cos(theta_r))
+            if p_on:
+                P = 0.5*(1+math.cos(2*theta_r)**2)
             if t_on:
-                B = 1.2
+                B = 0.8
                 T = math.exp(-B*(math.sin(theta_r)/wavelength)**2)
             
 
-            I = calculate_I(diffraction_type, form_factor_array, crystal, hkl, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
+            I = calculate_I(diffraction_type, form_factor_array, crystal, hkl, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies, L, P, T)
             #hkl
             to_write+=str(h) + "," + str(k) + "," + str(l) + ","
             #|G|
@@ -102,10 +114,10 @@ for h in range(lower,upper):
 
             #for plotting sharp peaks
             if (2*theta in two_theta):
-                I_G[two_theta.index(2*theta)] += I*LP*T
-            else:
+                I_G[two_theta.index(2*theta)] += I
+            elif 2*theta > 0:
                 two_theta.append(2*theta)
-                I_G.append(I*LP*T)
+                I_G.append(I)
             
             #for plotting with gaussian
             mu = mag_G
@@ -116,18 +128,23 @@ for h in range(lower,upper):
                     continue
                 theta_2 = math.degrees(math.asin(0.5*x[i]/mag_k))
                 if 2*theta_2 in two_theta_g:
-                    I_G_g[two_theta_g.index(2*theta_2)] += I * math.exp(-(mag_G-x[i])**2/(2*sigma**2))*LP*T
-                else:
+                    I_G_g[two_theta_g.index(2*theta_2)] += I * math.exp(-(mag_G-x[i])**2/(2*sigma**2))
+                elif 2*theta_2 > 0:
                     two_theta_g.append(2*theta_2)
-                    I_G_g.append(I * math.exp(-(mag_G-x[i])**2/(2*(sigma**2)))*LP*T) 
+                    I_G_g.append(I * math.exp(-(mag_G-x[i])**2/(2*(sigma**2)))) 
             
 #save to file
 with open("crystal_data/" + name+"_"+ diffraction_type +"_data.csv", "w") as f:
     f.write(to_write)
+
+max = np.max(I_G_g)
+for i in range(len(I_G_g)):
+    I_G_g[i] = I_G_g[i]/max
 
 plt.plot(two_theta_g, I_G_g)
 plt.xlim(0, 120)
 plt.ylim(0, None)
 plt.xlabel(r"2${\Theta}$ [deg]")
 plt.ylabel(r"Intensity")
+plt.title("X-ray diffraction for FCC Aluminum")
 plt.show()

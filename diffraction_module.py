@@ -118,7 +118,11 @@ def calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeff
     #nuclear and magnetic neutron scattering
 
     I = calculate_I_n(form_factors, crystal, v, partial_occupancy, occupancies)
-    
+    I += calculate_I_m(crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
+    return I
+
+def calculate_I_m(crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies):
+    I = 0
     F_m = np.array([0,0,0])
     positions = crystal.get_scaled_positions()
     for i in range(len(positions)):
@@ -139,15 +143,17 @@ def calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeff
 
     return I
 
-def calculate_I(type, form_factors,crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies):
+def calculate_I(type, form_factors,crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies, L, P, T):
     if type == "xz":
-        return calculate_I_xz(crystal, v, partial_occupancy, occupancies)
+        return L*P*T*calculate_I_xz(crystal, v, partial_occupancy, occupancies)
     elif type == "xc":
-        return calculate_I_xc(form_factors, crystal, v, wavelength, OH, partial_occupancy, occupancies)
+        return L*P*T*calculate_I_xc(form_factors, crystal, v, wavelength, OH, partial_occupancy, occupancies)
     elif type == "n":
-        return calculate_I_n(form_factors, crystal, v, partial_occupancy, occupancies)
+        return L*P*T*calculate_I_n(form_factors, crystal, v, partial_occupancy, occupancies)
     elif type == "nm":
-        return calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
+        return L*P*T*calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
+    elif type == "m":
+        return L*P*T*calculate_I_m(crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
 
 def get_crystal(name, file_type):
     if file_type == "v":
@@ -189,13 +195,16 @@ def get_form_factor_array(crystal, diffraction_type, partial_occupancy, occupanc
 
             for i in range(len(all_neutron_form_factors)):
                 if (oechem.OEGetAtomicSymbol((i)) in symbols):
-                    neutron_form_factors[oechem.OEGetAtomicSymbol((i))] = float(all_neutron_form_factors[i])
+                    neutron_form_factors[oechem.OEGetAtomicSymbol((i))] = float(all_neutron_form_factors[i-1])
             form_factors = neutron_form_factors
     elif diffraction_type == "xz":
+        return
+    elif diffraction_type == "m":
         return
     else:
         raise ValueError('Not a valid type of diffraction for this code')
     
+    print(form_factors)
     return form_factors
 
 def get_j0_coeffs(crystal, partial_occupancy, occupancies):
