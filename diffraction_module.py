@@ -204,7 +204,6 @@ def get_form_factor_array(crystal, diffraction_type, partial_occupancy, occupanc
     else:
         raise ValueError('Not a valid type of diffraction for this code')
     
-    print(form_factors)
     return form_factors
 
 def get_j0_coeffs(crystal, partial_occupancy, occupancies):

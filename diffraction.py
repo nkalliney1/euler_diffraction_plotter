@@ -66,8 +66,8 @@ I_G_g = []
 two_theta_g = []
 
 #diffraction calculations
-lower = -5
-upper = 5
+lower = -9
+upper = 9
 for h in range(lower,upper):
     for k in range(lower,upper):
         for l in range(lower,upper):
@@ -137,14 +137,18 @@ for h in range(lower,upper):
 with open("crystal_data/" + name+"_"+ diffraction_type +"_data.csv", "w") as f:
     f.write(to_write)
 
-max = np.max(I_G_g)
+max = 0
+for i in range(len(I_G_g)):
+    if I_G_g[i] > max and two_theta_g[i] > 0 and two_theta_g[i] < 120:
+        max = I_G_g[i]
+
 for i in range(len(I_G_g)):
     I_G_g[i] = I_G_g[i]/max
 
 plt.plot(two_theta_g, I_G_g)
 plt.xlim(0, 120)
-plt.ylim(0, None)
+plt.ylim(0, 1.1)
 plt.xlabel(r"2${\Theta}$ [deg]")
 plt.ylabel(r"Intensity")
-plt.title("X-ray diffraction for FCC Aluminum")
+plt.title("Neutron diffraction for type-II AlCrVTi")
 plt.show()
