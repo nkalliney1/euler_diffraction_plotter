@@ -23,20 +23,23 @@ def get_magnetic_f(symbol, wavelength, theta_r, j0_coeffs, j2_coeffs):
     s = math.sin(theta_r)/wavelength
     j0 = 0
     j2 = 0
+
     if symbol in j0_coeffs:
         j0_atom = j0_coeffs[symbol]
         for i in range(3):
-            j0 += float(j0_atom[i]) * math.exp(-1*float(j0_atom[i+1])*s*s)
+            j0 += j0_atom[2*i] * math.exp(-1*j0_atom[2*i+1]*s*s)
         j0 += float(j0_atom[6])
 
     if symbol in j2_coeffs:
         j2_atom = j2_coeffs[symbol]
         for i in range(3):
-            j2 += float(j2_atom[i]) * math.exp(-1*float(j2_atom[i+1])*s*s)
+            j2 += float(j2_atom[2*i]) * math.exp(-1*float(j2_atom[2*i+1])*s*s)
         j2 += float(j2_atom[6])
         j2 = j2*s*s
+    
+    #j2 multiplied by 0 for transition metals!
+    f = j0 + 0*j2/2
 
-    f = j0 + (-2-3.82608552)*j2/2
     return f
 
 def get_magnetic_moment(symbol, moments):
@@ -51,7 +54,8 @@ def get_moments(name):
     with open("crystals/" + name + "-moments.csv", newline='') as f:
         lines = f.readlines()
         for line in lines:
-            moments[line[0:2]] = float(line[3:])
+            line_split = line.split(" ")
+            moments[line_split[0]] = float(line_split[1])
     return moments
 
 def get_reciprocal_vectors(crystal):
@@ -80,7 +84,7 @@ def calculate_I_xz(crystal, v, partial_occupancy, occupancies):
         SG += f*e
     return abs(SG)**2
 
-def calculate_I_xc(form_factors, crystal, v, wavelength, OH, partial_occupancy, occupancies):
+def calculate_I_xc(form_factors, crystal, v, wavelength, theta_r, partial_occupancy, occupancies):
     #calculate intensity for scatting w cromer form factors
     SG = 0
     positions = crystal.get_scaled_positions()
@@ -90,9 +94,9 @@ def calculate_I_xc(form_factors, crystal, v, wavelength, OH, partial_occupancy, 
         if partial_occupancy:
             f = 0
             for atom in occupancies[crystal.symbols[i]]:
-                f += atom[1]*float(get_cromer_f(form_factors,atom[0],wavelength,OH))
+                f += atom[1]*float(get_cromer_f(form_factors,atom[0],wavelength,theta_r))
         else:
-            f = float(get_cromer_f(form_factors,crystal.symbols[i],wavelength,OH))
+            f = float(get_cromer_f(form_factors,crystal.symbols[i],wavelength,theta_r))
 
         SG += f*e
     return abs(SG)**2
@@ -114,15 +118,14 @@ def calculate_I_n(form_factors, crystal, v, partial_occupancy, occupancies):
         SG += f*e
     return abs(SG)**2
 
-def calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies):
+def calculate_I_nm(form_factors, crystal, v, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies):
     #nuclear and magnetic neutron scattering
 
     I = calculate_I_n(form_factors, crystal, v, partial_occupancy, occupancies)
-    I += calculate_I_m(crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
+    I += calculate_I_m(crystal, v, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
     return I
 
-def calculate_I_m(crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies):
-    I = 0
+def calculate_I_m(crystal, v, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies):
     F_m = np.array([0,0,0])
     positions = crystal.get_scaled_positions()
     for i in range(len(positions)):
@@ -130,30 +133,31 @@ def calculate_I_m(crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, par
             f = 0
             m = 0
             for atom in occupancies[crystal.symbols[i]]:
-                f = atom[1]*float(get_magnetic_f(atom[0],wavelength,OH, j0_coeffs, j2_coeffs))
-                m = atom[1]*get_magnetic_moment(atom[0], moments)
+                f += atom[1]*float(get_magnetic_f(atom[0],wavelength,theta_r, j0_coeffs, j2_coeffs))
+                m += atom[1]*get_magnetic_moment(atom[0], moments)
         else:
-            f = float(get_magnetic_f(crystal.symbols[i],wavelength,OH, j0_coeffs, j2_coeffs))
+            f = float(get_magnetic_f(crystal.symbols[i],wavelength,theta_r, j0_coeffs, j2_coeffs))
             m = get_magnetic_moment(crystal.symbols[i], moments)
 
         e = cmath.exp(complex(0,-2*math.pi*np.dot(v, positions[i])))
+
         F_m = np.add(F_m, f*e*m)
     k_hat = v / math.sqrt(np.dot(v, v))
-    I += np.linalg.norm(np.cross(k_hat, np.cross(F_m, k_hat)))**2
+    I = np.linalg.norm(np.cross(k_hat, np.cross(F_m, k_hat)))**2
 
     return I
 
-def calculate_I(type, form_factors,crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies, L, P, T):
+def calculate_I(type, form_factors,crystal, v, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies, L, P, T):
     if type == "xz":
         return L*P*T*calculate_I_xz(crystal, v, partial_occupancy, occupancies)
     elif type == "xc":
-        return L*P*T*calculate_I_xc(form_factors, crystal, v, wavelength, OH, partial_occupancy, occupancies)
+        return L*P*T*calculate_I_xc(form_factors, crystal, v, wavelength, theta_r, partial_occupancy, occupancies)
     elif type == "n":
         return L*P*T*calculate_I_n(form_factors, crystal, v, partial_occupancy, occupancies)
     elif type == "nm":
-        return L*P*T*calculate_I_nm(form_factors, crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
+        return L*P*T*calculate_I_nm(form_factors, crystal, v, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
     elif type == "m":
-        return L*P*T*calculate_I_m(crystal, v, wavelength, OH, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
+        return L*P*T*calculate_I_m(crystal, v, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
 
 def get_crystal(name, file_type):
     if file_type == "v":
@@ -221,9 +225,14 @@ def get_j0_coeffs(crystal, partial_occupancy, occupancies):
         lines = f.readlines()
         for i in range(0,len(lines)):
             line = lines[i]
+            #for two letter element names 
             if line[0:2] in symbols and line[0:2] not in j0:
                 nums = lines[i][4:-1].split("\t")
                 j0[line[0:2]]=[float(x) for x in nums]
+            #for single-letter element name
+            elif line[0:1] in symbols and line[0:1] not in j0:
+                nums = lines[i][4:-1].split("\t")
+                j0[line[0:1]]=[float(x) for x in nums]
     return j0
 
 def get_j2_coeffs(crystal, partial_occupancy, occupancies):
