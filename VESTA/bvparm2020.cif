@@ -1,1 +1,0 @@
-VESTA.app/Contents/Resources/bvparm2020.cif
