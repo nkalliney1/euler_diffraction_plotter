@@ -58,12 +58,12 @@ if diffraction_type == "nm" or diffraction_type == "m":
     j2_coeffs = get_j2_coeffs(crystal, partial_occupancy, occupancies)
     moments = get_moments(name)
 
-to_write = "h,k,l,mag(G),S,I,d,2theta\n"
 two_theta = []
 I_G = []
 labels = []
 I_G_g = []
 two_theta_g = []
+to_write = ""
 
 #diffraction calculations
 lower = -7
@@ -136,7 +136,9 @@ for h in range(lower,upper+1):
                 
             
 #save to file
-#with open("crystal_data/" + name+"_"+ diffraction_type +"_data.csv", "w") as f:
+#with open("to_plot.csv", "a") as f:
+#    for i in range(len(two_theta_g)):
+#        to_write += str(two_theta_g[i]) + "\t" + str(I_G_g[i]) + "\n"
 #    f.write(to_write)
 
 max = 0
