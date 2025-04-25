@@ -63,7 +63,7 @@ I_G = []
 labels = []
 I_G_g = []
 two_theta_g = []
-to_write = ""
+to_write = "h,k,l,|G|,2theta,d,I\n"
 
 #diffraction calculations
 lower = -7
@@ -103,15 +103,16 @@ for h in range(lower,upper+1):
 
                 I = calculate_I(diffraction_type, form_factor_array, crystal, hkl, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies, L, P, T)
                 #hkl
-                #to_write+=str(h) + "," + str(k) + "," + str(l) + ","
+                to_write+=str(h) + "," + str(k) + "," + str(l) + ","
                 #|G|
-                #to_write+=str(mag_G) + ","
-                #intensity
-                #to_write+=str(I) + ","
-                #interplanar spacing
-                #to_write+=str(2*math.pi/np.dot(G, G)) + ","
+                to_write+=str(mag_G) + ","
                 #2theta
-                #to_write+=str(2*theta) + "\n"
+                to_write+=str(2*theta) + ","
+                #interplanar spacing
+                to_write+=str(2*math.pi/np.dot(G, G)) + ","
+                #intensity
+                to_write+=str(I) + "\n"
+                
 
                 #for plotting sharp peaks
                 if (2*theta in two_theta):
@@ -134,12 +135,6 @@ for h in range(lower,upper+1):
                         two_theta_g.append(2*theta_2)
                         I_G_g.append(I * math.exp(-(mag_G-x[i])**2/(2*(sigma**2)))) 
                 
-            
-#save to file
-#with open("to_plot.csv", "a") as f:
-#    for i in range(len(two_theta_g)):
-#        to_write += str(two_theta_g[i]) + "\t" + str(I_G_g[i]) + "\n"
-#    f.write(to_write)
 
 max = 0
 for i in range(len(I_G_g)):
@@ -148,6 +143,9 @@ for i in range(len(I_G_g)):
 
 for i in range(len(I_G_g)):
     I_G_g[i] = I_G_g[i]/max
+
+with open("./crystal_data/" + name + "_" + diffraction_type+"_data.csv", "w") as f:
+    f.write(to_write)
 
 plt.plot(two_theta_g, I_G_g)
 plt.xlim(0, 120)

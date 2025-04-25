@@ -1,6 +1,8 @@
 #scp nkalline@euler.phys.cmu.edu:/home/widom/FilesForNedjma/Fe.cI2/Fe.cif ./crystals/
 #P1-I.Al-V-Cr-Ti
 #P1-II.Al-Cr-V-Ti
+#scp -r ./XNDC nkalline@euler.phys.cmu.edu:./XNDC
+#/Users/nedjmakalliney/Desktop/Programs/XNDC
 
 #conda activate venv
 #conda deactivate
