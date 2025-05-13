@@ -38,8 +38,7 @@ def get_magnetic_f(symbol, wavelength, theta_r, j0_coeffs, j2_coeffs):
         j2 = j2*s*s
     
     #j2 multiplied by 0 for transition metals!
-    f = j0 + 0*j2/2
-
+    f = j0 + 0*j2
     return f
 
 def get_magnetic_moment(symbol, moments):
@@ -51,7 +50,7 @@ def get_magnetic_moment(symbol, moments):
 def get_moments(name):
     #get all magnetic moments
     moments = {}
-    with open("crystals/" + name + "-moments.csv", newline='') as f:
+    with open("crystals/" + name + "-moments.csv") as f:
         lines = f.readlines()
         for line in lines:
             line_split = line.split(" ")
@@ -120,28 +119,41 @@ def calculate_I_n(form_factors, crystal, v, partial_occupancy, occupancies):
 
 def calculate_I_nm(form_factors, crystal, v, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies):
     #nuclear and magnetic neutron scattering
-
+    # 45.3484518099
+    
     I = calculate_I_n(form_factors, crystal, v, partial_occupancy, occupancies)
-    I += calculate_I_m(crystal, v, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
+    I += (1/0.066745253805)*calculate_I_m(crystal, v, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies)
     return I
 
 def calculate_I_m(crystal, v, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies):
     F_m = np.array([0,0,0])
     positions = crystal.get_scaled_positions()
     for i in range(len(positions)):
+        
+        f = 0
+        m = 0
         if partial_occupancy:
-            f = 0
-            m = 0
             for atom in occupancies[crystal.symbols[i]]:
-                f += atom[1]*float(get_magnetic_f(atom[0],wavelength,theta_r, j0_coeffs, j2_coeffs))
-                m += atom[1]*get_magnetic_moment(atom[0], moments)
+                if (v[0] == 1 and v[1] == 1 and v[2] == 0):
+                    print(atom)
+                    print(float(get_magnetic_f(atom[0],wavelength,theta_r, j0_coeffs, j2_coeffs)))
+                    print(get_magnetic_moment(atom[0], moments))
+                
+                f2 = atom[1]*float(get_magnetic_f(atom[0],wavelength,theta_r, j0_coeffs, j2_coeffs))
+                m2 = atom[1]*get_magnetic_moment(atom[0], moments)
+
+                f += f2
+                m += m2
         else:
             f = float(get_magnetic_f(crystal.symbols[i],wavelength,theta_r, j0_coeffs, j2_coeffs))
             m = get_magnetic_moment(crystal.symbols[i], moments)
-
+        
         e = cmath.exp(complex(0,-2*math.pi*np.dot(v, positions[i])))
-
+        if (v[0] == 1 and v[1] == 1 and v[2] == 0):
+            print(f*e*m)
         F_m = np.add(F_m, f*e*m)
+    if (v[0] == 1 and v[1] == 1 and v[2] == 0):
+       print(F_m)
     k_hat = v / math.sqrt(np.dot(v, v))
     I = np.linalg.norm(np.cross(k_hat, np.cross(F_m, k_hat)))**2
 
@@ -162,6 +174,8 @@ def calculate_I(type, form_factors,crystal, v, wavelength, theta_r, j0_coeffs, j
 def get_crystal(name, file_type):
     if file_type == "v":
         crystal = ase.io.vasp.read_vasp("crystals/"+name+".vasp")
+    elif file_type == "f":
+        crystal = read_crystal_file(name)
     else:
         crystal = ase.io.cif.read_cif("crystals/"+name+".cif")
     return crystal
@@ -231,7 +245,7 @@ def get_j0_coeffs(crystal, partial_occupancy, occupancies):
                 j0[line[0:2]]=[float(x) for x in nums]
             #for single-letter element name
             elif line[0:1] in symbols and line[0:1] not in j0:
-                nums = lines[i][4:-1].split("\t")
+                nums = lines[i][:-1].split("\t")[1:-1]
                 j0[line[0:1]]=[float(x) for x in nums]
     return j0
 
@@ -251,7 +265,7 @@ def get_j2_coeffs(crystal, partial_occupancy, occupancies):
         for i in range(0,len(lines)):
             line = lines[i]
             if line[0:2] in symbols and line[0:2] not in j2:
-                nums = lines[i][4:-1].split("\t")
+                nums = lines[i][:-1].split("\t")[1:-1]
                 j2[line[0:2]]=[float(x) for x in nums]
     return j2
 

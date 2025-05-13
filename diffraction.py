@@ -13,6 +13,8 @@ if "-v" in sys.argv:
     file_type = "v"
 if "-p" in sys.argv:
     file_type = "p"
+if "-f" in sys.argv:
+    file_type = "f"
 
 diffraction_type = ""
 if "-xz" in sys.argv:
@@ -66,8 +68,8 @@ two_theta_g = []
 to_write = "h,k,l,|G|,2theta,d,I\n"
 
 #diffraction calculations
-lower = -7
-upper = 7
+lower = -9
+upper = 9
 
 for h in range(lower,upper+1):
     for k in range(lower,upper+1):
@@ -102,6 +104,10 @@ for h in range(lower,upper+1):
                 
 
                 I = calculate_I(diffraction_type, form_factor_array, crystal, hkl, wavelength, theta_r, j0_coeffs, j2_coeffs, moments, partial_occupancy, occupancies, L, P, T)
+                #makes data a bit cleaner by removing rounding errors
+                if (I < 0.000000000000001):
+                    I = 0
+
                 #hkl
                 to_write+=str(h) + "," + str(k) + "," + str(l) + ","
                 #|G|
@@ -135,19 +141,59 @@ for h in range(lower,upper+1):
                         two_theta_g.append(2*theta_2)
                         I_G_g.append(I * math.exp(-(mag_G-x[i])**2/(2*(sigma**2)))) 
                 
+#make a function of just adding gaussians times data points centered at the peaks from 0-120
+#in a different file
 
 max = 0
 for i in range(len(I_G_g)):
     if I_G_g[i] > max and two_theta_g[i] > 0 and two_theta_g[i] < 120:
         max = I_G_g[i]
-
+print(max)
 for i in range(len(I_G_g)):
     I_G_g[i] = I_G_g[i]/max
 
-with open("./crystal_data/" + name + "_" + diffraction_type+"_data.csv", "w") as f:
+with open("./" + name + "/"+ diffraction_type+"_" + name + "_data.csv", "w") as f:
     f.write(to_write)
 
+with open("./"+ name + "/" + diffraction_type+ "_" + name +"_peaks.csv", "w") as f:
+    to_write2 = "2theta, I\n"
+    for i in range(len(two_theta)):
+        if I_G[i] > 0:
+            to_write2 += str(two_theta[i]) + "," + str(I_G[i])+"\n"
+    f.write(to_write2)
+
+x = []
+y1 = []
+y2 = []
+y = []
+max2 = 0
+
+with open("crystals/"+name+"-mag.dat", "r") as f:
+    lines = f.readlines()
+    for i in range(len(lines)):
+        line = lines[i].split(" ")
+        x.append(float(line[0]))
+        y1.append(float(line[1]))
+
+
+with open("crystals/"+name+"-nonmag.dat", "r") as f:
+    lines = f.readlines()
+    for i in range(len(lines)):
+        line = lines[i].split(" ")
+        y2.append(float(line[1]))
+
+for i in range(len(y1)):
+    y.append(y1[i] - y2[i])
+    if y1[i] - y2[i]> max2:
+        max2 = y1[i] - y2[i]
+
+for i in range(len(y1)):
+    y[i] = y[i]/max2
+
+plt.title("My code")
 plt.plot(two_theta_g, I_G_g)
+plt.plot(x, y)
+
 plt.xlim(0, 120)
 plt.ylim(0, 1.1)
 plt.xlabel(r"2${\Theta}$ [deg]")

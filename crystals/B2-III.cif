@@ -77,6 +77,5 @@ _atom_site_fract_y
 _atom_site_fract_z
 _atom_site_occupancy
 _atom_site_fract_symmform
-Al1 Al  1 a 0.00000 0.00000 0.00000 1.00000 0,0,0 
-Ti1 Ti  1 b 0.50000 0.50000 0.50000 1.00000 0,0,0 
- 
+Al1 Al   1 a 0.00000 0.00000 0.00000 0.50000 0,0,0 
+Cr1 Cr   1 b 0.50000 0.50000 0.50000 0.50000 0,0,0 
